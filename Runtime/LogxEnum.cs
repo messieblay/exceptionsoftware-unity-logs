@@ -1,0 +1,37 @@
+﻿using System;
+
+[Flags]
+public enum LogxEnum
+{
+    None = 0,
+    Actors = 1 << 0,
+    WorldFeedback = 1 << 1,
+    Brush = 1 << 2,
+    Builder = 1 << 3,
+    Cinematic = 1 << 4,
+    Combat = 1 << 5,
+    Data = 1 << 6,
+    Debug = 1 << 7,
+    Default = 1 << 8,
+    IA = 1 << 9,
+    InjectorCore = 1 << 10,
+    InjectorCoreEditor = 1 << 11,
+    Input = 1 << 12,
+    LifeCycle = 1 << 13,
+    Mission = 1 << 14,
+    OrdersLogic = 1 << 15,
+    OrdersMaster = 1 << 16,
+    OrdersVisual = 1 << 17,
+    Reflect = 1 << 18,
+    Regions = 1 << 19,
+    Triggers = 1 << 20,
+    Vars = 1 << 21,
+    AnimState = 1 << 22,
+    Turns = 1 << 23,
+    Flows = 1 << 24,
+    SaveGame = 1 << 25,
+    Tutorial = 1 << 26,
+    Scenes = 1 << 27,
+    Exeggutor = 1 << 28,
+    All = ~0,
+}
