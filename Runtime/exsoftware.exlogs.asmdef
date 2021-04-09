@@ -11,6 +11,12 @@
     ],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.exceptionsoftware.exlogs",
+            "expression": "1.0.0",
+            "define": "EX_LOGS"
+        }
+    ],
     "noEngineReferences": false
 }
