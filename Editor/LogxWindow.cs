@@ -127,11 +127,11 @@ namespace ExceptionSoftware.Logs
 
         protected override void DoLayout()
         {
-            _lv = position.CopyToZero().SplitSuperFixedFlexible(true, 20, (position.height * (stackPanelRatio)), position.height * (1 - stackPanelRatio));
+            _lv = position.CopyToZero().Split(SplitMode.Vertical, 20, (position.height * (stackPanelRatio)), position.height * (1 - stackPanelRatio));
             _toolbar = _lv[0];
             _logs = _lv[1];
             _logsStack = _lv[2];
-            _lhToolbar = _toolbar.SplitSuperFixedFlexible(false, 50, 5, 100, 100, 100, 30, -1);
+            _lhToolbar = _toolbar.Split(SplitMode.Horizontal, 50, 5, 100, 100, 100, 30, -1);
             resizer = _lv[2].Copy().SetHeight(10);
         }
 
