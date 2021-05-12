@@ -3,8 +3,12 @@
   "displayName": "Ex Logs",
   "version": "1.0.0",
   "description": "Librerias de codigo utilies para unity",
-  "type": "library",
   "dependencies": {
     "com.exceptionsoftware.exlibs": "1.0.0"
-  }
+  },
+  "author": {
+    "name": "Exception Software",
+    "email": "marcoblay@gmail.com",
+    "url": "https://github.com/messieblay/exceptionsoftware-unity-logs"
+  } 
 }
