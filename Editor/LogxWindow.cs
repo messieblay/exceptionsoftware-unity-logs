@@ -11,7 +11,7 @@ namespace ExceptionSoftware.Logs
         #region Window
 
 
-        [MenuItem("Tools/Logx Window", false, 3000)]
+        [MenuItem("Tools/Logx", false, 3000)]
         public static LogxWindow Open()
         {
 
@@ -181,7 +181,12 @@ namespace ExceptionSoftware.Logs
                     _clearOnPlay = GUILayout.Toggle(_clearOnPlay, "Clear on Play", EditorStyles.toolbarButton);
 
                     ExGUI.Button("Clear Current", EditorStyles.toolbarButton, Removecurrent);
+                    GUILayout.FlexibleSpace();
 
+                    if (GUILayout.Button("Test Text"))
+                    {
+                        Logx.Log("Wololo");
+                    }
                     GUILayout.FlexibleSpace();
 
                     EditorGUI.BeginChangeCheck();
