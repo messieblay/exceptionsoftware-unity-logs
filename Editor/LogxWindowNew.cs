@@ -49,6 +49,14 @@ public class LogxWindowNew : EditorWindow
         var rect = GUILayoutUtility.GetRect(0, float.MaxValue, 0, float.MaxValue);
         _treeView.OnGUI(rect);
     }
+
+    public class LogsMultiColumnHeader : MultiColumnHeader
+    {
+        public LogsMultiColumnHeader(MultiColumnHeaderState state) : base(state)
+        {
+            canSort = false;
+        }
+    }
     private class SampleTreeView : TreeView
     {
         private TreeViewItem _root;

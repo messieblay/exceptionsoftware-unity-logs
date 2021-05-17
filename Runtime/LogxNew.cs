@@ -50,7 +50,12 @@ public class LogxNew
         System.Diagnostics.StackTrace st = new System.Diagnostics.StackTrace(true);
         for (int i = 1; i < st.FrameCount; i++)
         {
-            if (st.GetFrame(i).GetFileName().Contains("Logx")) continue;
+            var frame = st.GetFrame(i);
+            if (frame == null) continue;
+            var file = frame.GetFileName();
+            if (file == null) continue;
+            if (file.Contains("Logx")) continue;
+
             currentFile = st.GetFrame(i).GetFileName();
             currentLine = st.GetFrame(i).GetFileLineNumber();
         }
