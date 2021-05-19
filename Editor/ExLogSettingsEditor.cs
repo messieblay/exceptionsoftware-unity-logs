@@ -28,6 +28,8 @@ namespace ExceptionSoftware.Logs
             base.DrawDefaultInspector();
             if (GUILayout.Button("Update"))
             {
+                (target as ExLogSettings).logstypes.Sort((x, y) => x.name.CompareTo(y.name));
+
                 //CodeFactory.CreateScripts(new EnumFlagsTemplate() { });
                 CodeFactory.CodeFactory.CreateScripts(new CodeFactory.EnumFlagsTemplate(ExLogsEditorUtility.LOGS_PATH)
                 {
