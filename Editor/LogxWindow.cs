@@ -5,11 +5,11 @@ using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 public class LogxWindow : EditorWindow, IHasCustomMenu
 {
-    [MenuItem("Tools/Logx", false, 3000)]
+    [MenuItem("Tools/Console Logx", false, 3000)]
     private static void ShowWindow()
     {
         LogxWindow w = GetWindow<LogxWindow>();
-        w.titleContent = new GUIContent("Logx");
+        w.titleContent = new GUIContent("Logx", EditorGUIUtility.FindTexture("d_UnityEditor.ConsoleWindow"));
     }
     private SearchField _searchField;
     static SampleTreeView _treeView;
