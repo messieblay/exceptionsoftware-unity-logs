@@ -1,19 +1,21 @@
-﻿using UnityEditor;
+﻿using System.Linq;
+using UnityEditor;
+using UnityEngine;
 
 namespace ExceptionSoftware.Logs
 {
     [InitializeOnLoad]
-    public class ExLogsEditorUtility
+    public class ExLogUtilityEditor
     {
-        static ExLogSettings _assets = null;
-        public static ExLogSettings Asset => _assets;
+        static ExLogSettings _settings = null;
+        public static ExLogSettings Asset => _settings;
 
         public const string LOGS_PATH = ExConstants.GAME_PATH + "Logs/";
 
         public const string LOGS_PATH_RESOURCES = LOGS_PATH + "Resources/";
 
         public const string LOGS_SETTINGS_FILENAME = "ExLogSettings";
-        static ExLogsEditorUtility() => LoadAsset();
+        static ExLogUtilityEditor() => LoadAsset();
 
 
         static void LoadAsset()
@@ -24,14 +26,20 @@ namespace ExceptionSoftware.Logs
             if (!System.IO.Directory.Exists(LOGS_PATH_RESOURCES))
                 System.IO.Directory.CreateDirectory(LOGS_PATH_RESOURCES);
 
-            if (_assets == null)
+            if (_settings == null)
             {
-                _assets = ExAssets.FindAssetsByType<ExLogSettings>().First();
+                _settings = ExAssets.FindAssetsByType<ExLogSettings>().First();
             }
 
-            if (_assets == null)
+
+            if (_settings == null)
             {
-                _assets = ExAssets.CreateAsset<ExLogSettings>(LOGS_PATH_RESOURCES, LOGS_SETTINGS_FILENAME);
+                _settings = Resources.FindObjectsOfTypeAll<ExLogSettings>().FirstOrDefault();
+            }
+
+            if (_settings == null)
+            {
+                _settings = ExAssets.CreateAsset<ExLogSettings>(LOGS_PATH_RESOURCES, LOGS_SETTINGS_FILENAME);
             }
         }
 
@@ -39,7 +47,7 @@ namespace ExceptionSoftware.Logs
         static void SelectAsset()
         {
             LoadAsset();
-            Selection.activeObject = _assets;
+            Selection.activeObject = _settings;
         }
 
     }

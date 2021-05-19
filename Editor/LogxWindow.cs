@@ -8,7 +8,8 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
     [MenuItem("Tools/Logx", false, 3000)]
     private static void ShowWindow()
     {
-        GetWindow<LogxWindow>();
+        LogxWindow w = GetWindow<LogxWindow>();
+        w.titleContent = new GUIContent("Logx");
     }
     private SearchField _searchField;
     static SampleTreeView _treeView;
@@ -19,6 +20,8 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
     Vector2 _scrollEntry = Vector2.zero;
     GUIStyle entryStyle;
     GUIContent _entryContent;
+
+
     /// <summary>
     /// Initialize
     /// </summary>
@@ -47,45 +50,45 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
         Logx.Refresh();
     }
 
-    Rect _rresizer;
     Rect _rentry;
 
 
-    float _resizeFactor = .8f;
-    void IHasCustomMenu.AddItemsToMenu(GenericMenu menu)
+    void OnEnable()
     {
-        GUIContent content = new GUIContent("My Custom Entry");
-        menu.AddItem(content, false, MyCallback);
+        EnableClearOnPlay();
+    }
+    void OnDisable()
+    {
+        DisableClearOnPlay();
     }
 
-    private void MyCallback()
-    {
-        Debug.Log("My Callback was called.");
-    }
-    Rect buttonRect;
+
     private void OnGUI()
     {
         Init();
         using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
         {
             GUILayout.Space(10);
-            _treeView.searchString = _searchField.OnToolbarGUI(_treeView.searchString);
+            if (GUILayout.Button("Clear ", EditorStyles.toolbarButton))
+            {
+                ClearConsole();
+            }
+            _clearOnPlay = GUILayout.Toggle(_clearOnPlay, "Clear on Play", EditorStyles.toolbarButton, GUILayout.Height(14));
             GUILayout.FlexibleSpace();
+
+            _treeView.searchString = _searchField.OnToolbarGUI(_treeView.searchString);
             if (GUILayout.Button("Filter", EditorStyles.toolbarButton))
             {
-                PopupWindow.Show(buttonRect, new PopupExample());
+                PopupWindow.Show(_rectFilterPopup, new PopupExample());
             }
-            if (Event.current.type == EventType.Repaint) buttonRect = GUILayoutUtility.GetLastRect();
+            GUILayout.FlexibleSpace();
+
+            if (Event.current.type == EventType.Repaint) _rectFilterPopup = GUILayoutUtility.GetLastRect();
 
             if (GUILayout.Button("Refresh", EditorStyles.toolbarButton))
             {
                 Logx.Refresh();
             }
-            if (GUILayout.Button("Create log", EditorStyles.toolbarButton))
-            {
-                Logx.Log("Wololo " + Random.value, "Audio", logtype: UnityLogType.Log);
-            }
-
         }
         var rect = GUILayoutUtility.GetRect(0, float.MaxValue, 0, base.position.height * _resizeFactor);
         _treeView.OnGUI(rect);
@@ -96,6 +99,100 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
         ProcessEvents(Event.current);
     }
 
+    void DrawEntry()
+    {
+        _scrollEntry = GUILayout.BeginScrollView(_scrollEntry, GUILayout.ExpandWidth(true), GUILayout.Height(base.position.height * (1 - _resizeFactor)));
+        if (_selected != null)
+        {
+            _entryContent = new GUIContent(_selected.fulltext);
+            float num9 = entryStyle.CalcHeight(_entryContent, position.width);
+            EditorGUILayout.SelectableLabel(_entryContent.text, entryStyle, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true), GUILayout.MinHeight(num9 + 10f));
+        }
+        GUILayout.EndScrollView();
+    }
+
+    #region Options
+
+
+    void IHasCustomMenu.AddItemsToMenu(GenericMenu menu)
+    {
+        GUIContent content = new GUIContent("Log Entry/1 Lines");
+        menu.AddItem(content, false, LogEntry1);
+
+        content = new GUIContent("Log Entry/2 Lines");
+        menu.AddItem(content, false, LogEntry2);
+
+        content = new GUIContent("Log Entry/3 Lines");
+        menu.AddItem(content, false, LogEntry3);
+
+        content = new GUIContent("Log Entry/4 Lines");
+        menu.AddItem(content, false, LogEntry4);
+
+        content = new GUIContent("Log Entry/5 Lines");
+        menu.AddItem(content, false, LogEntry5);
+
+        content = new GUIContent("Log Entry/6 Lines");
+        menu.AddItem(content, false, LogEntry6);
+
+        content = new GUIContent("Log Entry/7 Lines");
+        menu.AddItem(content, false, LogEntry7);
+
+        content = new GUIContent("Log Entry/8 Lines");
+        menu.AddItem(content, false, LogEntry8);
+
+        content = new GUIContent("Log Entry/9 Lines");
+        menu.AddItem(content, false, LogEntry9);
+
+        content = new GUIContent("Log Entry/10 Lines");
+        menu.AddItem(content, false, LogEntry10);
+    }
+
+    private void LogEntry1() => LogEntry(1);
+    private void LogEntry2() => LogEntry(2);
+    private void LogEntry3() => LogEntry(3);
+    private void LogEntry4() => LogEntry(4);
+    private void LogEntry5() => LogEntry(5);
+    private void LogEntry6() => LogEntry(6);
+    private void LogEntry7() => LogEntry(7);
+    private void LogEntry8() => LogEntry(8);
+    private void LogEntry9() => LogEntry(9);
+    private void LogEntry10() => LogEntry(10);
+    private void LogEntry(int rows) => _treeView.SetRowLines(rows);
+
+
+    #endregion
+    #region Clear Console
+    void ClearConsole()
+    {
+        Logx.LEntrys.Clear();
+    }
+    #endregion
+    #region Clear on Play
+
+    bool _clearOnPlay = true;
+
+    void EnableClearOnPlay()
+    {
+        EditorApplication.playModeStateChanged -= ClearOnPlay;
+        EditorApplication.playModeStateChanged += ClearOnPlay;
+    }
+    void DisableClearOnPlay()
+    {
+        EditorApplication.playModeStateChanged -= ClearOnPlay;
+        EditorApplication.playModeStateChanged += ClearOnPlay;
+    }
+
+    void ClearOnPlay(PlayModeStateChange playmode)
+    {
+        if (playmode == PlayModeStateChange.EnteredPlayMode && _clearOnPlay)
+        {
+            ClearConsole();
+        }
+    }
+    #endregion
+    #region Resizer
+    Rect _rresizer;
+    float _resizeFactor = .8f;
 
     private void DrawResizer()
     {
@@ -123,21 +220,7 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
 
         Resize(e);
     }
-
-    void DrawEntry()
-    {
-        _scrollEntry = GUILayout.BeginScrollView(_scrollEntry, GUILayout.ExpandWidth(true), GUILayout.Height(base.position.height * (1 - _resizeFactor)));
-        if (_selected != null)
-        {
-            _entryContent = new GUIContent(_selected.fulltext);
-            float num9 = entryStyle.CalcHeight(_entryContent, position.width);
-            EditorGUILayout.SelectableLabel(_entryContent.text, entryStyle, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true), GUILayout.MinHeight(num9 + 10f));
-        }
-        GUILayout.EndScrollView();
-    }
-
-
-    private void Resize(Event e)
+    void Resize(Event e)
     {
         if (isResizing)
         {
@@ -145,17 +228,18 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
             Repaint();
         }
     }
-
+    #endregion
+    #region FilterPopUp
+    Rect _rectFilterPopup;
 
     public class PopupExample : PopupWindowContent
     {
-
-        public override Vector2 GetWindowSize() => new Vector2(200, 150);
+        public override Vector2 GetWindowSize() => new Vector2(200, 500);
 
         public override void OnGUI(Rect rect)
         {
             GUILayout.Label("Filter Options", EditorStyles.boldLabel);
-            foreach (var logtype in ExLogsEditorUtility.Asset.logstypes)
+            foreach (var logtype in ExLogUtilityEditor.Asset.logstypes)
             {
                 logtype.showing = EditorGUILayout.Toggle(logtype.name, logtype.showing);
                 _treeView.searchString = _treeView.searchString;
@@ -164,6 +248,7 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
         }
 
     }
+    #endregion
 
     private class SampleTreeView : TreeView
     {
@@ -174,7 +259,6 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
             _style = EditorStyles.label;
             _style.richText = true;
             _style.alignment = TextAnchor.UpperLeft;
-
             showAlternatingRowBackgrounds = true;
             showBorder = true;
             _root = new TreeViewItem(0, -1, "root");
@@ -182,7 +266,10 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
             SetupDepthsFromParentsAndChildren(_root);
             Reload();
         }
-
+        public void SetRowLines(int lines)
+        {
+            rowHeight = 16 * lines;
+        }
         protected override void DoubleClickedItem(int id)
         {
             EntryItem entry = (FindItem(id, _root) as EntryItem);
@@ -191,12 +278,11 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
 
         protected override TreeViewItem BuildRoot()
         {
-            //Debug.Log(_root.children.Count);
             _root.children.Clear();
 
             foreach (var e in Logx.LEntrys)
             {
-                foreach (var logtype in ExLogsEditorUtility.Asset.logstypes)
+                foreach (var logtype in ExLogUtilityEditor.Asset.logstypes)
                 {
                     if (logtype.name == e.label && logtype.showing)
                     {
@@ -208,18 +294,8 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
             return _root;
         }
 
-        public void AddItem(Entry entry)
-        {
-            //_root.children.Add(new EntryItem(entry));
-            Reload();
-        }
-        public void AddItems(List<Entry> entrys)
-        {
-            //_root.children.Clear();
-            //foreach (var e in entrys)
-            //    _root.children.Add(new EntryItem(e));
-            Reload();
-        }
+        public void AddItem(Entry entry) => Reload();
+        public void AddItems(List<Entry> entrys) => Reload();
 
         protected override void RowGUI(RowGUIArgs args)
         {
@@ -242,7 +318,7 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
         protected override bool DoesItemMatchSearch(TreeViewItem item, string search)
         {
             EntryItem entry = item as EntryItem;
-            foreach (var logtype in ExLogsEditorUtility.Asset.logstypes)
+            foreach (var logtype in ExLogUtilityEditor.Asset.logstypes)
             {
                 if (logtype.name == entry.entry.label && !logtype.showing)
                 {

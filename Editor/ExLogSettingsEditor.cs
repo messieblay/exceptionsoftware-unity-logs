@@ -31,7 +31,7 @@ namespace ExceptionSoftware.Logs
                 (target as ExLogSettings).logstypes.Sort((x, y) => x.name.CompareTo(y.name));
 
                 //CodeFactory.CreateScripts(new EnumFlagsTemplate() { });
-                CodeFactory.CodeFactory.CreateScripts(new CodeFactory.EnumFlagsTemplate(ExLogsEditorUtility.LOGS_PATH)
+                CodeFactory.CodeFactory.CreateScripts(new CodeFactory.EnumFlagsTemplate(ExLogUtilityEditor.LOGS_PATH)
                 {
                     className = "LogxEnum",
                     enums = GenerateEnumContent((target as ExLogSettings).logstypes.Select(s => s.name).ToList())

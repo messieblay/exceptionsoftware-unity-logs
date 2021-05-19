@@ -35,13 +35,14 @@ public class Entry
 public class Logx
 {
 
-    [SerializeField] static List<Entry> _lEntrys = new List<Entry>();
+    //[SerializeField] static List<Entry> _lEntrys = new List<Entry>();
     [SerializeField] static int id = int.MinValue;
-    public static List<Entry> LEntrys => _lEntrys;
+    public static List<Entry> LEntrys => ExceptionSoftware.Logs.ExLogUtility.Settings.entrys;
 
-    public static void Log(string msg, System.Enum label, UnityLogType logtype = UnityLogType.None, bool showInUnityConsole = true) => Log(msg, label.ToString(), logtype, showInUnityConsole);
+    public static void Log(System.Enum label, string msg, UnityLogType logtype = UnityLogType.None, bool showInUnityConsole = true) => Log(label.ToString(), msg, logtype, showInUnityConsole);
+    public static void Log(string msg, UnityLogType logtype = UnityLogType.None, bool showInUnityConsole = true) => Log("Defult", msg, logtype, showInUnityConsole);
 
-    public static void Log(string msg, string label = "Default", UnityLogType logtype = UnityLogType.None, bool showInUnityConsole = true)
+    public static void Log(string label, string msg, UnityLogType logtype = UnityLogType.None, bool showInUnityConsole = true)
     {
         //if (UnityEngine.Debug.isDebugBuild)
 
@@ -82,13 +83,13 @@ public class Logx
         entry.currentLine = currentLine;
         entry.fulltext = txt + "\n" + entry.st;
 
-        _lEntrys.Add(entry);
-        if (_lEntrys.Count > 300)
+        LEntrys.Add(entry);
+        if (LEntrys.Count > 1000)
         {
-            _lEntrys.RemoveAt(0);
+            LEntrys.RemoveAt(0);
         }
         if (onEntrysAdd != null) onEntrysAdd(entry);
-        if (onEntrysChanged != null) onEntrysChanged(_lEntrys);
+        if (onEntrysChanged != null) onEntrysChanged(LEntrys);
 
         switch (logtype)
         {
@@ -107,7 +108,7 @@ public class Logx
     }
     public static void Refresh()
     {
-        if (onEntrysChanged != null) onEntrysChanged(_lEntrys);
+        if (onEntrysChanged != null) onEntrysChanged(LEntrys);
     }
     static string StacktraceWithHyperlinks(string stacktraceText, int callstackTextStart)
     {
