@@ -64,16 +64,27 @@ public class Logx
             currentLine = st.GetFrame(i).GetFileLineNumber();
         }
 
-        //st.GetFrame(0).
+
         string labelFormat = $"<b>[{label}]</b>";
         if (ExceptionSoftware.Logs.ExLogUtility.Settings != null)
         {
             var logtypereg = ExceptionSoftware.Logs.ExLogUtility.Settings.logstypes.Find(s => s.name == label);
-            if (logtypereg != null && logtypereg.color != Color.clear)
+            if (logtypereg != null)
             {
-                labelFormat = $"<color=#{ColorUtility.ToHtmlStringRGB(logtypereg.color)}>{labelFormat}</color>";
+                if (logtypereg.color != Color.clear)
+                {
+                    labelFormat = $"<color=#{ColorUtility.ToHtmlStringRGB(logtypereg.color)}>{labelFormat}</color>";
+                }
+            }
+            else
+            {
+#if UNITY_EDITOR
+                ExceptionSoftware.Logs.ExLogUtility.Settings.logstypes.Add(new ExceptionSoftware.Logs.ExLogSettings.LogsType() { name = label, showing = true });
+                UnityEditor.EditorUtility.SetDirty(ExceptionSoftware.Logs.ExLogUtility.Settings);
+#endif
             }
         }
+
         string txt = $"{labelFormat,-15} {msg}";
         Entry entry = new Entry(logtype, label, msg);
 
