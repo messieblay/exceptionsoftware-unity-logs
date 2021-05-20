@@ -1,432 +1,341 @@
-﻿using ExceptionSoftware.ExEditor;
+﻿using ExceptionSoftware.Logs;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
+using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-
-namespace ExceptionSoftware.Logs
+public class LogxWindow : EditorWindow, IHasCustomMenu
 {
-    public class LogxWindow : ExWindow<LogxWindow>
+    [MenuItem("Tools/Console Logx", false, 3000)]
+    private static void ShowWindow()
     {
-        #region Window
+        LogxWindow w = GetWindow<LogxWindow>();
+        w.titleContent = new GUIContent("Logx", EditorGUIUtility.FindTexture("d_UnityEditor.ConsoleWindow"));
+    }
+    private SearchField _searchField;
+    static SampleTreeView _treeView;
+    private TreeViewState _treeViewState;
+
+    bool isResizing;
+    static Entry _selected = null;
+    Vector2 _scrollEntry = Vector2.zero;
+    GUIStyle entryStyle;
+    GUIContent _entryContent;
 
 
-        [MenuItem("Tools/Logx", false, 3000)]
-        public static LogxWindow Open()
+    /// <summary>
+    /// Initialize
+    /// </summary>
+    private void Init()
+    {
+        if (_treeViewState == null)
         {
-
-            //System.Type wtype = System.Type.GetType("UnityEditor.ConsoleWindow,UnityEditor.dll");
-            //var window = LogxWindow.GetWindow<LogxWindow>(wtype);
-            var window = LogxWindow.GetWindow<LogxWindow>();
-            window.titleContent = new GUIContent("ReConsole");
-            window.Focus();
-            window.Repaint();
-            return window;
-            //LogxWindow.TryOpenWindow();
+            _treeViewState = new TreeViewState();
+        }
+        if (_treeView == null)
+        {
+            _treeView = new SampleTreeView(_treeViewState);
+        }
+        if (_searchField == null)
+        {
+            _searchField = new SearchField();
+            _searchField.downOrUpArrowKeyPressed += _treeView.SetFocusAndEnsureSelectedItem;
         }
 
-        static void WriteENum(System.Enum e)
+        entryStyle = "CN Message";
+
+        Logx.onEntrysChanged -= _treeView.AddItems;
+        Logx.onEntrysChanged += _treeView.AddItems;
+        Logx.onEntrysAdd -= _treeView.AddItem;
+        Logx.onEntrysAdd += _treeView.AddItem;
+        Logx.Refresh();
+    }
+
+    Rect _rentry;
+
+
+    void OnEnable()
+    {
+        EnableClearOnPlay();
+    }
+    void OnDisable()
+    {
+        DisableClearOnPlay();
+    }
+
+
+    private void OnGUI()
+    {
+        Init();
+        using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
         {
-            Debug.Log(e.ToString());
-            Debug.Log(System.Enum.GetName(e.GetType(), e));
-        }
-
-        public override string GetTitle() { return "ReConsole"; }
-
-        string[] _labels;
-
-        protected override void DoEnable()
-        {
-
-            //_labels = System.Enum.GetNames(typeof(LogxEnum));
-            _labels = new string[] { "None" };
-
-            Logx.onEntrysAdd -= OnEntryAdd;
-            Logx.onEntrysAdd += OnEntryAdd;
-
-            FilterEntrys();
-            EnableClearOnPlay();
-        }
-
-        protected override void DoDisable()
-        {
-            Logx.onEntrysAdd -= OnEntryAdd;
-
-            DisableClearOnPlay();
-        }
-
-        void OnEntryAdd(List<LogEntry> entrys)
-        {
-            foreach (var e in entrys)
-            {
-                if (_labels.Contains(e.msgType))
-                {
-                    _labels = _labels.Add(e.msgType);
-                }
-            }
-            FilterEntrys();
-            if (_isScrollOnBottom)
-            {
-                _scroll.y = _scrollContentHeight;
-            }
-            Repaint();
-        }
-
-        protected override void DoRecompile()
-        {
-            base.DoRecompile();
-            DoEnable();
-        }
-
-        #endregion
-        #region Styles
-
-        GUIStyle MessageStyle;
-        GUIStyle Box;
-        GUIStyle EvenBackground;
-        GUIStyle OddBackground;
-        GUIStyle resizerStyle;
-        GUIStyle rowStyle;
-        static bool _stylesLoaded = false;
-        void TryLoadStyles()
-        {
-            if (_stylesLoaded) return;
-            EvenBackground = new GUIStyle("CN EntryBackEven");
-
-            RectOffset padding = EvenBackground.padding;
-            padding.bottom = padding.top = 5;
-
-            EvenBackground.wordWrap = true;
-            EvenBackground.margin = new RectOffset();
-            EvenBackground.padding = padding;
-
-            OddBackground = new GUIStyle("CN EntryBackodd");
-            OddBackground.wordWrap = true;
-            OddBackground.margin = new RectOffset();
-            OddBackground.padding = padding;
-
-            resizerStyle = new GUIStyle();
-            resizerStyle.normal.background = EditorGUIUtility.Load("icons/d_AvatarBlendBackground.png") as Texture2D;
-            MessageStyle = new GUIStyle("CN Message");
-            Box = new GUIStyle("CN Box");
-            _stylesLoaded = true;
-
-        }
-        #endregion
-        #region Layout
-
-        Rect[] _lv = null;
-        Rect _toolbar;
-        Rect _logs;
-        Rect _logsStackResizer;
-        Rect _logsStack;
-        Rect _content;
-        Rect[] _lhToolbar;
-        Rect resizer;
-        Rect stackPanel;
-
-        protected override void DoLayout()
-        {
-            _lv = position.CopyToZero().Split(SplitMode.Vertical, 20, (position.height * (stackPanelRatio)), position.height * (1 - stackPanelRatio));
-            _toolbar = _lv[0];
-            _logs = _lv[1];
-            _logsStack = _lv[2];
-            _lhToolbar = _toolbar.Split(SplitMode.Horizontal, 50, 5, 100, 100, 100, 30, -1);
-            resizer = _lv[2].Copy().SetHeight(10);
-        }
-
-        #endregion
-        #region Clear on Play
-        bool _clearOnPlay = true;
-
-        void EnableClearOnPlay()
-        {
-            EditorApplication.playModeStateChanged -= ClearOnPlay;
-            EditorApplication.playModeStateChanged += ClearOnPlay;
-        }
-        void DisableClearOnPlay()
-        {
-            EditorApplication.playModeStateChanged -= ClearOnPlay;
-            EditorApplication.playModeStateChanged += ClearOnPlay;
-        }
-
-        void ClearOnPlay(PlayModeStateChange playmode)
-        {
-            if (playmode == PlayModeStateChange.EnteredPlayMode && _clearOnPlay)
+            GUILayout.Space(10);
+            if (GUILayout.Button("Clear ", EditorStyles.toolbarButton))
             {
                 ClearConsole();
             }
-        }
-        #endregion
-        #region Toolbar
+            _clearOnPlay = GUILayout.Toggle(_clearOnPlay, "Clear on Play", EditorStyles.toolbarButton, GUILayout.Height(14));
+            GUILayout.FlexibleSpace();
 
-        //Filter
-        int _maskView = ~0;
-        List<string> _labelsSelected = new List<string>();
-        bool _filterNormalLog = true;
-        bool _filterWarningLog = true;
-        bool _filterErrorLog = true;
-        int _filterNormalLogCount = 0;
-        int _filterWarningLogCount = 0;
-        int _filterErrorLogCount = 0;
-
-
-        void DrawToolbar()
-        {
-            GUILayout.BeginArea(_toolbar, EditorStyles.toolbar);
+            _treeView.searchString = _searchField.OnToolbarGUI(_treeView.searchString);
+            if (GUILayout.Button("Filter", EditorStyles.toolbarButton))
             {
-                EditorGUILayout.BeginHorizontal();
+                PopupWindow.Show(_rectFilterPopup, new PopupExample());
+            }
+            GUILayout.FlexibleSpace();
+
+            if (Event.current.type == EventType.Repaint) _rectFilterPopup = GUILayoutUtility.GetLastRect();
+
+            if (GUILayout.Button("Refresh", EditorStyles.toolbarButton))
+            {
+                Logx.Refresh();
+            }
+        }
+        var rect = GUILayoutUtility.GetRect(0, float.MaxValue, 0, base.position.height * _resizeFactor);
+        _treeView.OnGUI(rect);
+        _rresizer = GUILayoutUtility.GetRect(0, float.MaxValue, 0, 3);
+
+        DrawResizer();
+        DrawEntry();
+        ProcessEvents(Event.current);
+    }
+
+    void DrawEntry()
+    {
+        _scrollEntry = GUILayout.BeginScrollView(_scrollEntry, GUILayout.ExpandWidth(true), GUILayout.Height(base.position.height * (1 - _resizeFactor)));
+        if (_selected != null)
+        {
+            _entryContent = new GUIContent(_selected.fulltext);
+            float num9 = entryStyle.CalcHeight(_entryContent, position.width);
+            EditorGUILayout.SelectableLabel(_entryContent.text, entryStyle, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true), GUILayout.MinHeight(num9 + 10f));
+        }
+        GUILayout.EndScrollView();
+    }
+
+    #region Options
+
+
+    void IHasCustomMenu.AddItemsToMenu(GenericMenu menu)
+    {
+        GUIContent content = new GUIContent("Log Entry/1 Lines");
+        menu.AddItem(content, false, LogEntry1);
+
+        content = new GUIContent("Log Entry/2 Lines");
+        menu.AddItem(content, false, LogEntry2);
+
+        content = new GUIContent("Log Entry/3 Lines");
+        menu.AddItem(content, false, LogEntry3);
+
+        content = new GUIContent("Log Entry/4 Lines");
+        menu.AddItem(content, false, LogEntry4);
+
+        content = new GUIContent("Log Entry/5 Lines");
+        menu.AddItem(content, false, LogEntry5);
+
+        content = new GUIContent("Log Entry/6 Lines");
+        menu.AddItem(content, false, LogEntry6);
+
+        content = new GUIContent("Log Entry/7 Lines");
+        menu.AddItem(content, false, LogEntry7);
+
+        content = new GUIContent("Log Entry/8 Lines");
+        menu.AddItem(content, false, LogEntry8);
+
+        content = new GUIContent("Log Entry/9 Lines");
+        menu.AddItem(content, false, LogEntry9);
+
+        content = new GUIContent("Log Entry/10 Lines");
+        menu.AddItem(content, false, LogEntry10);
+    }
+
+    private void LogEntry1() => LogEntry(1);
+    private void LogEntry2() => LogEntry(2);
+    private void LogEntry3() => LogEntry(3);
+    private void LogEntry4() => LogEntry(4);
+    private void LogEntry5() => LogEntry(5);
+    private void LogEntry6() => LogEntry(6);
+    private void LogEntry7() => LogEntry(7);
+    private void LogEntry8() => LogEntry(8);
+    private void LogEntry9() => LogEntry(9);
+    private void LogEntry10() => LogEntry(10);
+    private void LogEntry(int rows) => _treeView.SetRowLines(rows);
+
+
+    #endregion
+    #region Clear Console
+    void ClearConsole()
+    {
+        Logx.LEntrys.Clear();
+    }
+    #endregion
+    #region Clear on Play
+
+    bool _clearOnPlay = true;
+
+    void EnableClearOnPlay()
+    {
+        EditorApplication.playModeStateChanged -= ClearOnPlay;
+        EditorApplication.playModeStateChanged += ClearOnPlay;
+    }
+    void DisableClearOnPlay()
+    {
+        EditorApplication.playModeStateChanged -= ClearOnPlay;
+        EditorApplication.playModeStateChanged += ClearOnPlay;
+    }
+
+    void ClearOnPlay(PlayModeStateChange playmode)
+    {
+        if (playmode == PlayModeStateChange.EnteredPlayMode && _clearOnPlay)
+        {
+            ClearConsole();
+        }
+    }
+    #endregion
+    #region Resizer
+    Rect _rresizer;
+    float _resizeFactor = .8f;
+
+    private void DrawResizer()
+    {
+        GUILayout.BeginArea(_rresizer);
+        GUILayout.EndArea();
+
+        EditorGUIUtility.AddCursorRect(_rresizer, MouseCursor.ResizeVertical);
+    }
+
+    private void ProcessEvents(Event e)
+    {
+        switch (e.type)
+        {
+            case EventType.MouseDown:
+                if (e.button == 0 && _rresizer.Contains(e.mousePosition))
                 {
-                    ExGUI.Button("Clear", EditorStyles.toolbarButton, ClearConsole);
-                    _clearOnPlay = GUILayout.Toggle(_clearOnPlay, "Clear on Play", EditorStyles.toolbarButton);
-
-                    ExGUI.Button("Clear Current", EditorStyles.toolbarButton, Removecurrent);
-                    GUILayout.FlexibleSpace();
-
-                    if (GUILayout.Button("Test Text"))
-                    {
-                        Logx.Log("Wololo");
-                    }
-                    GUILayout.FlexibleSpace();
-
-                    EditorGUI.BeginChangeCheck();
-                    _maskView = EditorGUILayout.MaskField(_maskView, _labels, EditorStyles.toolbarDropDown);
-                    _filterNormalLog = GUILayout.Toggle(_filterNormalLog, new GUIContent((_filterNormalLogCount > 999) ? "999+" : _filterNormalLogCount.ToString(), EditorGUIUtility.FindTexture("d_console.infoicon.sml")), EditorStyles.toolbarButton, new GUILayoutOption[0]);
-                    _filterWarningLog = GUILayout.Toggle(_filterWarningLog, new GUIContent((_filterWarningLogCount > 999) ? "999+" : _filterWarningLogCount.ToString(), EditorGUIUtility.FindTexture("d_console.warnicon.sml")), EditorStyles.toolbarButton, new GUILayoutOption[0]);
-                    _filterErrorLog = GUILayout.Toggle(_filterErrorLog, new GUIContent((_filterErrorLogCount > 999) ? "999+" : _filterErrorLogCount.ToString(), EditorGUIUtility.FindTexture("d_console.erroricon.sml")), EditorStyles.toolbarButton, new GUILayoutOption[0]);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        FilterEntrys();
-                    }
-
+                    isResizing = true;
                 }
-                EditorGUILayout.EndHorizontal();
-            }
-            GUILayout.EndArea();
+                break;
+
+            case EventType.MouseUp:
+                isResizing = false;
+                break;
         }
 
-        void FilterLavbelsSelectedToView()
+        Resize(e);
+    }
+    void Resize(Event e)
+    {
+        if (isResizing)
         {
-            _labelsSelected.Clear();
-            for (int x = 0; x < _labels.Length; x++)
+            _resizeFactor = Mathf.Clamp((e.mousePosition.y - 3) / position.height, .2f, .8f);
+            Repaint();
+        }
+    }
+    #endregion
+    #region FilterPopUp
+    Rect _rectFilterPopup;
+
+    public class PopupExample : PopupWindowContent
+    {
+        public override Vector2 GetWindowSize() => new Vector2(200, 500);
+
+        public override void OnGUI(Rect rect)
+        {
+            GUILayout.Label("Filter Options", EditorStyles.boldLabel);
+            foreach (var logtype in ExLogUtilityEditor.Asset.logstypes)
             {
-                int layer = 1 << x;
-                if ((_maskView & layer) != 0)
+                logtype.showing = EditorGUILayout.Toggle(logtype.name, logtype.showing);
+                _treeView.searchString = _treeView.searchString;
+                _treeView.Reload();
+            }
+        }
+
+    }
+    #endregion
+
+    private class SampleTreeView : TreeView
+    {
+        private TreeViewItem _root;
+        GUIStyle _style;
+        public SampleTreeView(TreeViewState state) : base(state)
+        {
+            _style = EditorStyles.label;
+            _style.richText = true;
+            _style.alignment = TextAnchor.UpperLeft;
+            showAlternatingRowBackgrounds = true;
+            showBorder = true;
+            _root = new TreeViewItem(0, -1, "root");
+            _root.children = new System.Collections.Generic.List<TreeViewItem>();
+            SetupDepthsFromParentsAndChildren(_root);
+            Reload();
+        }
+        public void SetRowLines(int lines)
+        {
+            rowHeight = 16 * lines;
+        }
+        protected override void DoubleClickedItem(int id)
+        {
+            EntryItem entry = (FindItem(id, _root) as EntryItem);
+            UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(FileUtils.ConvertPathToRelative(entry.entry.currentFile), entry.entry.currentLine);
+        }
+
+        protected override TreeViewItem BuildRoot()
+        {
+            _root.children.Clear();
+
+            foreach (var e in Logx.LEntrys)
+            {
+                foreach (var logtype in ExLogUtilityEditor.Asset.logstypes)
                 {
-                    _labelsSelected.Add(_labels[x]);
-                }
-            }
-        }
-
-        bool ContainsLabel(string label)
-        {
-            for (int x = 0; x < _labelsSelected.Count; x++)
-            {
-                if (_labelsSelected[x] == label)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        void FilterEntrys()
-        {
-            _filterNormalLogCount = _lEntrys.Count(s => s.logType == LogType.Log);
-            _filterWarningLogCount = _lEntrys.Count(s => s.logType == LogType.Warning);
-            _filterErrorLogCount = _lEntrys.Count(s => s.logType == LogType.Error);
-
-            FilterLavbelsSelectedToView();
-            _lEntrysFiltred = _lEntrys.Where(s => ContainsLabel(s.msgType)).ToList();
-            if (!_filterNormalLog)
-            {
-                _lEntrysFiltred.RemoveAll(s => s.logType == LogType.Log);
-            }
-            if (!_filterWarningLog)
-            {
-                _lEntrysFiltred.RemoveAll(s => s.logType == LogType.Warning);
-            }
-            if (!_filterErrorLog)
-            {
-                _lEntrysFiltred.RemoveAll(s => s.logType == LogType.Error);
-            }
-
-        }
-        void Removecurrent()
-        {
-            FilterLavbelsSelectedToView();
-            _lEntrys.RemoveAll(s => ContainsLabel(s.msgType));
-            FilterEntrys();
-        }
-        void ClearConsole()
-        {
-            _lEntrys.Clear();
-            FilterEntrys();
-        }
-        #endregion
-        #region Logs 
-
-        Vector2 _scroll;
-        [SerializeField] List<LogEntry> _lEntrysFiltred = new List<LogEntry>();
-        public List<LogEntry> _lEntrys { get { return Logx.LEntrys; } }
-
-        float _currentWidth = 0;
-        float _height;
-        LogEntry _selectedEntry = null;
-        int _selectedEntryIndex = -1;
-        Rect _controlRect;
-
-        float _scrollContentHeight;
-        bool _isScrollOnBottom = false;
-        Color[] logTypeColors = { Color.red, Color.white, Color.yellow, Color.white, Color.red };
-        public override void DoGUI()
-        {
-            if (_currentWidth != base.position.width)
-            {
-                _currentWidth = base.position.width;
-            }
-            TryLoadStyles();
-            ProcessEvents();
-            DrawToolbar();
-
-            GUILayout.BeginArea(_logs);
-            {
-                _scroll = EditorGUILayout.BeginScrollView(_scroll);
-                {
-                    for (int x = 0; x < _lEntrysFiltred.Count; x++)
+                    if (logtype.name == e.label && logtype.showing)
                     {
-                        GUI.color = logTypeColors[(int)_lEntrysFiltred[x].logType];
-                        rowStyle = x % 2 == 0 ? EvenBackground : OddBackground;
-                        _height = rowStyle.CalcHeight(_lEntrysFiltred[x].content, _logs.width);
-                        EditorGUI.BeginChangeCheck();
-                        _lEntrysFiltred[x].active = GUILayout.Toggle(_lEntrysFiltred[x].active, _lEntrysFiltred[x].content, rowStyle, GUILayout.ExpandWidth(true), GUILayout.MaxWidth(_logs.width), /*GUILayout.ExpandHeight(true),*/ GUILayout.Height(_height));
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            _lEntrys.Where(s => s.count != _lEntrysFiltred[x].count).ForEach(s => s.active = false);
-                            _selectedEntry = _lEntrysFiltred[x];
-
-                            if (_lEntrysFiltred[x].active)
-                            {
-                                _selectedEntryIndex = x;
-                            }
-                            else
-                            {
-                                _selectedEntryIndex = -1;
-                            }
-
-                            if (xEvents.MouseRight)
-                            {
-                                System.Diagnostics.Process.Start("devenv", string.Format("/edit \"{0}\" /command \"Edit.GoTo {1}\"", _lEntrysFiltred[x].currentFile, _lEntrysFiltred[x].currentLine.ToString()));
-                                //System.Diagnostics.Process.Start("devenv", " /edit \"" + _lEntrysFiltred[x].currentFile + "\" /command \"edit.goto " + _lEntrysFiltred[x].currentLine.ToString() + " \" ");
-                            }
-                        }
-                    }
-                    GUI.color = Color.white;
-
-                    if (_lEntrysFiltred.Count > 0)
-                    {
-                        _controlRect = GUILayoutUtility.GetLastRect();
-                        if (_controlRect.height > 1)
-                        {
-                            _scrollContentHeight = _controlRect.y;
-                        }
-                    }
-                }
-                _isScrollOnBottom = _scroll.y > _scrollContentHeight - _logs.height;
-                EditorGUILayout.EndScrollView();
-            }
-            GUILayout.EndArea();
-
-            DrawLowerPanel();
-            DrawResizer();
-
-
-        }
-
-        #endregion
-        #region Resize Panel
-        Vector2 _stackScroll;
-        float stackPanelRatio = 0.8f;
-        bool isResizing = false;
-
-        void DrawLowerPanel()
-        {
-            GUILayout.BeginArea(_lv[2]);
-            {
-                _stackScroll = GUILayout.BeginScrollView(this._stackScroll, Box, GUILayout.Height(_lv[2].height - 20));
-                if (_selectedEntry != null)
-                {
-                    float minHeight = Mathf.Max(100, MessageStyle.CalcHeight(new GUIContent(_selectedEntry.st), base.position.width));
-                    EditorGUILayout.SelectableLabel(_selectedEntry.st, MessageStyle, new GUILayoutOption[]
-                    {
-                    GUILayout.ExpandWidth(true),
-                    GUILayout.ExpandHeight(true),
-                    GUILayout.MinHeight(minHeight)
-                    });
-                }
-                GUILayout.EndScrollView();
-            }
-            GUILayout.EndArea();
-        }
-
-        void DrawResizer()
-        {
-
-            GUILayout.BeginArea(new Rect(resizer.position + (Vector2.up * 5f), new Vector2(position.width, 2)));
-            GUILayout.EndArea();
-
-            EditorGUIUtility.AddCursorRect(resizer, MouseCursor.ResizeVertical);
-        }
-
-        void ProcessEvents()
-        {
-            if (xEvents.MouseLeft)
-            {
-                if (xEvents.MouseDown)
-                {
-                    if (resizer.Contains(e.mousePosition))
-                    {
-                        isResizing = true;
+                        _root.children.Add(new EntryItem(e));
+                        break;
                     }
                 }
-                if (xEvents.MouseUp)
-                {
-                    isResizing = false;
-                }
             }
-            if (xEvents.KeyDown)
-            {
-                if (xEvents.KeyCode == KeyCode.DownArrow)
-                {
-                    _selectedEntryIndex = Mathf.Min(_selectedEntryIndex + 1, _lEntrysFiltred.Count - 1);
-                    _selectedEntry.active = false;
-                    _selectedEntry = _lEntrysFiltred[_selectedEntryIndex];
-                    _selectedEntry.active = true;
-                    Repaint();
-                }
-
-                if (xEvents.KeyCode == KeyCode.UpArrow)
-                {
-                    _selectedEntryIndex = Mathf.Max(_selectedEntryIndex - 1, 0);
-                    _selectedEntry.active = false;
-                    _selectedEntry = _lEntrysFiltred[_selectedEntryIndex];
-                    _selectedEntry.active = true;
-                    Repaint();
-                }
-            }
-
-            Resize(e);
+            return _root;
         }
 
-        void Resize(Event e)
+        public void AddItem(Entry entry) => Reload();
+        public void AddItems(List<Entry> entrys) => Reload();
+
+        protected override void RowGUI(RowGUIArgs args)
         {
-            if (isResizing)
+            GUI.Label(args.rowRect, args.label, _style);
+        }
+
+        protected override void SelectionChanged(IList<int> selectedIds)
+        {
+            try
             {
-                stackPanelRatio = Mathf.Max(0.1f, Mathf.Min(.9f, (e.mousePosition.y - 20) / (position.height - 20)));
-                DoLayout();
-                Repaint();
+                EntryItem entry = (FindItem(selectedIds[0], _root) as EntryItem);
+                _selected = entry.entry;
+            }
+            catch
+            {
+                _selected = null;
             }
         }
-        #endregion
+
+        protected override bool DoesItemMatchSearch(TreeViewItem item, string search)
+        {
+            EntryItem entry = item as EntryItem;
+            foreach (var logtype in ExLogUtilityEditor.Asset.logstypes)
+            {
+                if (logtype.name == entry.entry.label && !logtype.showing)
+                {
+                    return false;
+                }
+            }
+            return entry.entry.msg.Contains(search);
+        }
+    }
+
+    public class EntryItem : TreeViewItem
+    {
+        public Entry entry;
+
+        public EntryItem(Entry entry) : base(entry.id, 0, entry.fulltext)
+        {
+            this.entry = entry;
+        }
     }
 }

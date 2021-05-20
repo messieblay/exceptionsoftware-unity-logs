@@ -8,10 +8,8 @@ namespace ExceptionSoftware.Logs
     {
         [SerializeField] public List<LogsType> logstypes = new List<LogsType>();
 
-        private void OnValidate()
-        {
-            logstypes.Sort((x, y) => x.name.CompareTo(y.name));
-        }
+        [SerializeField] public List<Entry> entrys = new List<Entry>();
+
         [System.Serializable]
         public class LogsType
         {
