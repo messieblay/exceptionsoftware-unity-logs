@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 namespace ExceptionSoftware.Logs
@@ -28,38 +26,12 @@ namespace ExceptionSoftware.Logs
             base.DrawDefaultInspector();
             if (GUILayout.Button("Update"))
             {
-                (target as ExLogSettings).logstypes.Sort((x, y) => x.name.CompareTo(y.name));
-
-                //CodeFactory.CreateScripts(new EnumFlagsTemplate() { });
-                CodeFactory.CodeFactory.CreateScripts(new CodeFactory.EnumFlagsTemplate(ExLogUtilityEditor.LOGS_PATH)
-                {
-                    className = "LogxEnum",
-                    enums = GenerateEnumContent((target as ExLogSettings).logstypes.Select(s => s.name).ToList())
-                });
-
+                ExLogUtilityEditor.CreateLogEnum();
 
             }
 
             enumflag = (LogxEnumT)EditorGUILayout.EnumFlagsField(enumflag);
         }
 
-        string[] GenerateEnumContent(List<string> sceneList)
-        {
-            sceneList = sceneList.OrderBy(s => s).ToList();
-            List<string> content = new List<string>();
-            if (sceneList.Count > 0)
-            {
-                for (int i = 0; i < sceneList.Count; i++)
-                {
-                    content.Add(ValidName(sceneList[i]));
-                }
-            }
-            return content.ToArray();
-
-            string ValidName(string sceneName)
-            {
-                return sceneName.Replace(" ", "");
-            }
-        }
     }
 }

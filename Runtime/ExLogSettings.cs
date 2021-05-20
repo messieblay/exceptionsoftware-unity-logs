@@ -17,5 +17,7 @@ namespace ExceptionSoftware.Logs
             public Color color = Color.clear;
             public bool showing = true;
         }
+
+        public void Sort() => logstypes.Sort((x, y) => x.name.CompareTo(y.name));
     }
 }

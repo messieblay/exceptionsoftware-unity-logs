@@ -239,7 +239,7 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
         public override void OnGUI(Rect rect)
         {
             GUILayout.Label("Filter Options", EditorStyles.boldLabel);
-            foreach (var logtype in ExLogUtilityEditor.Asset.logstypes)
+            foreach (var logtype in ExLogUtilityEditor.Settings.logstypes)
             {
                 logtype.showing = EditorGUILayout.Toggle(logtype.name, logtype.showing);
                 _treeView.searchString = _treeView.searchString;
@@ -282,7 +282,7 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
 
             foreach (var e in Logx.LEntrys)
             {
-                foreach (var logtype in ExLogUtilityEditor.Asset.logstypes)
+                foreach (var logtype in ExLogUtilityEditor.Settings.logstypes)
                 {
                     if (logtype.name == e.label && logtype.showing)
                     {
@@ -318,7 +318,7 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
         protected override bool DoesItemMatchSearch(TreeViewItem item, string search)
         {
             EntryItem entry = item as EntryItem;
-            foreach (var logtype in ExLogUtilityEditor.Asset.logstypes)
+            foreach (var logtype in ExLogUtilityEditor.Settings.logstypes)
             {
                 if (logtype.name == entry.entry.label && !logtype.showing)
                 {
