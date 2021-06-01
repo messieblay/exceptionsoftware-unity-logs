@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using static ExceptionSoftware.Logs.ExLogSettings;
@@ -83,30 +82,12 @@ namespace ExceptionSoftware.Logs
             CodeFactory.CodeFactory.CreateScripts(new CodeFactory.EnumFlagsTemplate(ExLogUtilityEditor.LOGS_PATH)
             {
                 className = "LogxEnum",
-                enums = GenerateEnumContent(Settings.logstypes.Select(s => s.name).ToList())
+                enums = CodeFactory.CodeFactory.GenerateEnumContent(Settings.logstypes.Select(s => s.name).OrderBy(s => s).ToList())
             });
 
 
         }
 
 
-        static string[] GenerateEnumContent(List<string> sceneList)
-        {
-            sceneList = sceneList.OrderBy(s => s).ToList();
-            List<string> content = new List<string>();
-            if (sceneList.Count > 0)
-            {
-                for (int i = 0; i < sceneList.Count; i++)
-                {
-                    content.Add(ValidName(sceneList[i]));
-                }
-            }
-            return content.ToArray();
-
-            string ValidName(string sceneName)
-            {
-                return sceneName.Replace(" ", "");
-            }
-        }
     }
 }

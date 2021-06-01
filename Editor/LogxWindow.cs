@@ -8,7 +8,8 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
     [MenuItem("Tools/Console Logx", false, 3000)]
     private static void ShowWindow()
     {
-        LogxWindow w = GetWindow<LogxWindow>();
+        System.Type wtype = System.Type.GetType("UnityEditor.ConsoleWindow,UnityEditor.dll");
+        LogxWindow w = GetWindow<LogxWindow>(wtype);
         w.titleContent = new GUIContent("Logx", EditorGUIUtility.FindTexture("d_UnityEditor.ConsoleWindow"));
     }
     private SearchField _searchField;
