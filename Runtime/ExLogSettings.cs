@@ -6,8 +6,9 @@ namespace ExceptionSoftware.Logs
     [System.Serializable]
     public class ExLogSettings : ScriptableObject
     {
+        [Header("Settings")]
+        [SerializeField] public bool useUnityConsole = false;
         [SerializeField] public List<LogsType> logstypes = new List<LogsType>();
-
         [SerializeField] public List<Entry> entrys = new List<Entry>();
 
         [System.Serializable]

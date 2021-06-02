@@ -38,11 +38,17 @@ public class Logx
     //[SerializeField] static List<Entry> _lEntrys = new List<Entry>();
     [SerializeField] static int id = int.MinValue;
     public static List<Entry> LEntrys => ExceptionSoftware.Logs.ExLogUtility.Settings.entrys;
+    public static void LogError(System.Enum label, string msg) => Log(label.ToString(), msg, UnityLogType.Error);
+    public static void LogError(string msg) => Log("Defult", msg, UnityLogType.Error);
 
-    public static void Log(System.Enum label, string msg, UnityLogType logtype = UnityLogType.None, bool showInUnityConsole = true) => Log(label.ToString(), msg, logtype, showInUnityConsole);
-    public static void Log(string msg, UnityLogType logtype = UnityLogType.None, bool showInUnityConsole = true) => Log("Defult", msg, logtype, showInUnityConsole);
+    public static void LogWarning(System.Enum label, string msg) => Log(label.ToString(), msg, UnityLogType.Warning);
+    public static void LogWarning(string msg) => Log("Defult", msg, UnityLogType.Warning);
 
-    public static void Log(string label, string msg, UnityLogType logtype = UnityLogType.None, bool showInUnityConsole = true)
+
+    public static void Log(System.Enum label, string msg, UnityLogType logtype = UnityLogType.None) => Log(label.ToString(), msg, logtype);
+    public static void Log(string msg, UnityLogType logtype = UnityLogType.None) => Log("Defult", msg, logtype);
+
+    public static void Log(string label, string msg, UnityLogType logtype = UnityLogType.None)
     {
         //if (UnityEngine.Debug.isDebugBuild)
 
@@ -85,7 +91,21 @@ public class Logx
             }
         }
 
-        string txt = $"{labelFormat,-15} {msg}";
+        string txt = $"{labelFormat,-15} ";
+        switch (logtype)
+        {
+            case UnityLogType.Log:
+                txt += msg;
+                break;
+            case UnityLogType.Warning:
+                txt += $"<color=#{ColorUtility.ToHtmlStringRGB(Color.yellow)}>{msg}</color>";
+                break;
+            case UnityLogType.Error:
+                txt += $"<color=#{ColorUtility.ToHtmlStringRGB(Color.red)}>{msg}</color>";
+                break;
+        }
+
+
         Entry entry = new Entry(logtype, label, msg);
 
         entry.id = id++;
@@ -101,20 +121,21 @@ public class Logx
         }
         if (onEntrysAdd != null) onEntrysAdd(entry);
         if (onEntrysChanged != null) onEntrysChanged(LEntrys);
-
-        switch (logtype)
+        if (ExceptionSoftware.Logs.ExLogUtility.Settings.useUnityConsole)
         {
-            case UnityLogType.Log:
-                UnityEngine.Debug.Log(txt);
-                break;
-            case UnityLogType.Warning:
-                UnityEngine.Debug.LogWarning(txt);
-                break;
-            case UnityLogType.Error:
-                UnityEngine.Debug.LogError(txt);
-                break;
+            switch (logtype)
+            {
+                case UnityLogType.Log:
+                    UnityEngine.Debug.Log(msg);
+                    break;
+                case UnityLogType.Warning:
+                    UnityEngine.Debug.LogWarning(msg);
+                    break;
+                case UnityLogType.Error:
+                    UnityEngine.Debug.LogError(msg);
+                    break;
+            }
         }
-
 
     }
     public static void Refresh()
