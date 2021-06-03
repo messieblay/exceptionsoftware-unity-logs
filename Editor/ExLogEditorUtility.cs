@@ -45,7 +45,7 @@ namespace ExceptionSoftware.Logs
             }
         }
 
-        [MenuItem("Tools/Logs/Settings", priority = 3000)]
+        [MenuItem("Tools/Logs/Settings", priority = ExConstants.MENU_ITEM_PRIORITY)]
         static void SelectAsset()
         {
             LoadAsset();

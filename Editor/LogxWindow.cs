@@ -5,7 +5,7 @@ using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 public class LogxWindow : EditorWindow, IHasCustomMenu
 {
-    [MenuItem("Tools/Console Logx", false, 3000)]
+    [MenuItem("Tools/Console Logx", priority = ExConstants.MENU_ITEM_PRIORITY)]
     private static void ShowWindow()
     {
         System.Type wtype = System.Type.GetType("UnityEditor.ConsoleWindow,UnityEditor.dll");
