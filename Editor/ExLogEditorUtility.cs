@@ -11,7 +11,7 @@ namespace ExceptionSoftware.Logs
         static ExLogSettings _settings = null;
         public static ExLogSettings Settings => _settings;
 
-        public const string LOGS_PATH = ExConstants.GAME_PATH + "Logs/";
+        public const string LOGS_PATH = ExConstants.SETTINGS_PATH + "Logs/";
 
         public const string LOGS_PATH_RESOURCES = LOGS_PATH + "Resources/";
 
