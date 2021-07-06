@@ -40,9 +40,14 @@ namespace ExceptionSoftware.Logs
 
             if (_settings == null)
             {
-                _settings = ExAssets.CreateAsset<ExLogSettings>(LOGS_PATH_RESOURCES, LOGS_SETTINGS_FILENAME);
+                _settings = ExAssets.CreateAsset<ExLogSettings>(LOGS_PATH_RESOURCES, LOGS_SETTINGS_FILENAME, true, true);
+            }
+
+            if (_settings != null)
+            {
                 CreateBasicLogs();
             }
+
         }
 
         [MenuItem("Tools/Logs/Settings", priority = ExConstants.MENU_ITEM_PRIORITY)]
@@ -60,18 +65,25 @@ namespace ExceptionSoftware.Logs
             CreateTypeLog("Gameplay", new Color(0, 1, 0));
             CreateTypeLog("Loading", new Color(0, 0, 1));
             CreateTypeLog("Saving", new Color(0, 0, 1));
+            CreateTypeLog("Events", new Color(0, .5f, 1));
+            CreateTypeLog("UI", new Color(0, 1, .5f));
             AssetDatabase.SaveAssets();
             CreateLogEnum();
         }
         public static void CreateTypeLog(string name, Color color)
         {
-            LogsType logtype = new LogsType()
+
+            if (!Settings.logstypes.Exists(s => s.name == name))
             {
-                name = name,
-                color = color
-            };
-            Settings.logstypes.Add(logtype);
-            EditorUtility.SetDirty(Settings);
+                LogsType logtype = new LogsType()
+                {
+                    name = name,
+                    color = color
+                };
+
+                Settings.logstypes.Add(logtype);
+                EditorUtility.SetDirty(Settings);
+            }
         }
 
         public static void CreateLogEnum()
