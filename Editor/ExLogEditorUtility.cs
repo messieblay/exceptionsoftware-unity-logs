@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using static ExceptionSoftware.Logs.ExLogSettings;
@@ -88,8 +90,25 @@ namespace ExceptionSoftware.Logs
 
         public static void CreateLogEnum()
         {
-
             Settings.Sort();
+            Type type = ExReflect.FindType("LogxEnum");
+            List<string> names = System.Enum.GetNames(type).ToList();
+
+            bool needRebuild = false;
+            foreach (var s in Settings.logstypes.Select(s => s.name))
+            {
+                if (!names.Contains(s.Replace(" ", "")))
+                {
+                    //Need rebuild
+                    needRebuild = true;
+                    break;
+                }
+            }
+
+            if (needRebuild == false)
+            {
+                return;
+            }
 
             CodeFactory.CodeFactory.CreateScripts(new CodeFactory.EnumFlagsTemplate(ExLogUtilityEditor.LOGS_PATH)
             {
