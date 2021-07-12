@@ -45,10 +45,10 @@ public class Logx
     public static void LogWarning(string msg) => Log("Defult", msg, UnityLogType.Warning);
 
 
-    public static void Log(System.Enum label, string msg, UnityLogType logtype = UnityLogType.None) => Log(label.ToString(), msg, logtype);
-    public static void Log(string msg, UnityLogType logtype = UnityLogType.None) => Log("Defult", msg, logtype);
+    public static void Log(System.Enum label, string msg, UnityLogType logtype = UnityLogType.Log) => Log(label.ToString(), msg, logtype);
+    public static void Log(string msg, UnityLogType logtype = UnityLogType.Log) => Log("Defult", msg, logtype);
 
-    public static void Log(string label, string msg, UnityLogType logtype = UnityLogType.None)
+    public static void Log(string label, string msg, UnityLogType logtype = UnityLogType.Log)
     {
         //if (UnityEngine.Debug.isDebugBuild)
 
