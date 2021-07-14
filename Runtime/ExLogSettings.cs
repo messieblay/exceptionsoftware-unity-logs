@@ -4,7 +4,7 @@ using UnityEngine;
 namespace ExceptionSoftware.Logs
 {
     [System.Serializable]
-    public class ExLogSettings : ScriptableObject
+    public class ExLogSettings : SettingsAsset
     {
         [Header("Settings")]
         [SerializeField] public bool useUnityConsole = false;
