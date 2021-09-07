@@ -8,6 +8,7 @@ namespace ExceptionSoftware.Logs
     {
         [Header("Settings")]
         [SerializeField] public bool useUnityConsole = false;
+        [SerializeField] public int maxLogs = 500;
         [SerializeField] public List<LogsType> logstypes = new List<LogsType>();
         [SerializeField] public List<Entry> entrys = new List<Entry>();
 

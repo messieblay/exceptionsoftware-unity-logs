@@ -30,7 +30,14 @@ public class Entry
         this.label = label;
         this.msg = msg;
     }
-
+    public void Dispose()
+    {
+        label = null;
+        msg = null;
+        fulltext = null;
+        st = null;
+        currentFile = null;
+    }
 }
 public class Logx
 {
@@ -116,12 +123,14 @@ public class Logx
         entry.fulltext = txt + "\n" + entry.st;
 
         LEntrys.Add(entry);
-        if (LEntrys.Count > 1000)
+        while (LEntrys.Count > ExceptionSoftware.Logs.ExLogUtility.Settings.maxLogs)
         {
+            LEntrys[0].Dispose();
             LEntrys.RemoveAt(0);
         }
+
         if (onEntrysAdd != null) onEntrysAdd(entry);
-        if (onEntrysChanged != null) onEntrysChanged(LEntrys);
+        //if (onEntrysChanged != null) onEntrysChanged(LEntrys);
         if (ExceptionSoftware.Logs.ExLogUtility.Settings.useUnityConsole)
         {
             switch (logtype)

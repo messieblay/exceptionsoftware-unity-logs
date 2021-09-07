@@ -23,6 +23,8 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
     GUIContent _entryContent;
 
 
+    [SerializeField] public List<Entry> entrys = new List<Entry>();
+
     /// <summary>
     /// Initialize
     /// </summary>
@@ -34,7 +36,7 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
         }
         if (_treeView == null)
         {
-            _treeView = new SampleTreeView(_treeViewState);
+            _treeView = new SampleTreeView(_treeViewState, entrys);
         }
         if (_searchField == null)
         {
@@ -255,7 +257,8 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
     {
         private TreeViewItem _root;
         GUIStyle _style;
-        public SampleTreeView(TreeViewState state) : base(state)
+        List<Entry> entrys;
+        public SampleTreeView(TreeViewState state, List<Entry> entrys) : base(state)
         {
             _style = EditorStyles.label;
             _style.richText = true;
@@ -281,7 +284,8 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
         {
             _root.children.Clear();
 
-            foreach (var e in Logx.LEntrys)
+
+            foreach (var e in entrys)
             {
                 foreach (var logtype in ExLogUtilityEditor.Settings.logstypes)
                 {
@@ -295,13 +299,13 @@ public class LogxWindow : EditorWindow, IHasCustomMenu
             return _root;
         }
 
-        public void AddItem(Entry entry) => Reload();
-        public void AddItems(List<Entry> entrys) => Reload();
-
-        protected override void RowGUI(RowGUIArgs args)
+        public void AddItem(Entry entry)
         {
-            GUI.Label(args.rowRect, args.label, _style);
+            entrys.Add(entry);
+            Reload();
         }
+        public void AddItems(List<Entry> entrys) => Reload();
+        protected override void RowGUI(RowGUIArgs args) => GUI.Label(args.rowRect, args.label, _style);
 
         protected override void SelectionChanged(IList<int> selectedIds)
         {
